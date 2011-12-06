@@ -12,6 +12,9 @@
 # 05/11/2011 - Enhance for suitable with general usage
 #
 
+# copy ld-linux* libc etc..etc..
+_noskip=0;
+
 _error() {
 	local msg=$@;
 	echo "[ERROR] $msg";
@@ -37,8 +40,11 @@ _copy_file() {
 
 	_BSRC="$(basename ${_SRC})";
 
-	[ -e "${_DST}/${_BSRC}" ] && return 1;
-	
+	if [ -e "${_DST}/${_BSRC}" ]; then
+		echo "[*] ${FUNCNAME}: File exists! ${_DST}/${_BSRC}";
+		return 1;
+	fi
+
 	echo "[*] ${FUNCNAME} ${_SRC} ${_DST}";
 
 	if [ -L "${_SRC}" ]; then
@@ -73,19 +79,28 @@ _copy_lib() {
         local _SRC="$1" _DST="$2" _BSRC _DSRC _LSRC="";
 	local _LO _P;
         echo "[*] ${FUNCNAME} ${_SRC} ${_DST}";
-	if [ ! -e "$_SRC" ]; then
+	if [ ! -e "${_SRC}" ]; then
 		_error "${FUNCNAME}: file '${_SRC}' not found";
 	fi
 	
 	# check in destination
 	_BSRC="$(basename ${_SRC})";
 
-	[ -e "${_DST}/${_BSRC}" ] && return 1;
-	[ ! -d "${_DST}" ] && _exec_echo "mkdir -p $_DST";
+	if [ -e "${_DST}/${_BSRC}" ]; then
+		echo "[*] ${FUNCNAME}: Skip! ${_DST}/${_BSRC}";
+		return 1;
+	fi
+
+	[ ! -d "${_DST}" ] && _exec_echo "mkdir -p ${_DST}";
 	local _LO="$(_P=$(ldd ${_SRC});echo "${_P}" |tr -d '^\t' |sed -e 's/=>//g' |cut -d ' ' -f 3; echo "${_P}" |tr -d '^\t' |grep -v "=>" |cut -d ' ' -f 1)";
 	if [ -n "${_LO:-}" ]; then
 		unset _P;
 		for _P in ${_LO}; do
+			if [ "${_noskip}" == "0" ]; then
+				[[ $(basename $_P) =~ ld-* ]] && continue;
+				[[ $(basename $_P) =~ libc-* ]] && continue;
+				[[ $(basename $_P) =~ libselinux-* ]] && continue;
+			fi
 			_copy_file "${_P}" "${_DST}";
 		done
 	fi
@@ -109,17 +124,17 @@ _copy_bin() {
 
     	echo "[*] ${FUNCNAME}: ${__FILE} ${__ROOT_DIR}";
 
-	local __DNAME=$(dirname $__FILE);
-        local __BNAME=$(basename $__FILE);
-        local __IBIN="$__ROOT_DIR/bin";
-        local __ILIB="$__ROOT_DIR/lib";
+	local __DNAME=$(dirname ${__FILE});
+        local __BNAME=$(basename ${__FILE});
+        local __IBIN="${__ROOT_DIR}/bin";
+        local __ILIB="${__ROOT_DIR}/lib";
 	
-	[ ! -d "$__IBIN" ] && _exec_echo "mkdir -p ${__IBIN}";
-	[ ! -d "$__ILIB" ] && _exec_echo "mkdir -p ${__ILIB}";
-	_exec_echo "cp -f $__FILE $__IBIN";
+	[ ! -d "${__IBIN}" ] && _exec_echo "mkdir -p ${__IBIN}";
+	[ ! -d "${__ILIB}" ] && _exec_echo "mkdir -p ${__ILIB}";
+	_exec_echo "cp -f ${__FILE} ${__IBIN}";
 	if [ -f "${__IBIN}/${__BNAME}" ]; then
         	_exec_echo "chmod a-srwx ${__IBIN}/${__BNAME}";
-        	_exec_echo "chmod u+rwx ${__IBIN/${__BNAME}";
+        	_exec_echo "chmod u+rwx ${__IBIN}/${__BNAME}";
         	_exec_echo "strip --strip-all ${__IBIN}/${__BNAME}";
 		_copy_lib "${__FILE}" "${__ILIB}";
 	else
@@ -128,9 +143,12 @@ _copy_bin() {
 }
 
 if [ "x$1" = "x" ] || [ "x$2" = "x" ]; then
-	echo "Usage: $0 binary destdir";
+	echo "Usage: $0 binary destdir [withlibc]";
+	echo -e "\t withlibc -- copy all library";
 	exit 1;
 fi
+
+[ "$3" = "withlibc" ] && _noskip=1;
 
 _copy_bin "$1" "$2";
 exit $?;
