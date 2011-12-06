@@ -41,27 +41,27 @@ _copy_file() {
 	
 	echo "[*] ${FUNCNAME} ${_SRC} ${_DST}";
 
-	if [ -L "$_SRC" ]; then
-		_exec_echo "cp -fa $_SRC $_DST";
-		_LSRC="$_SRC";
-		_DSRC="$(dirname $_SRC)";
-		while [ -L "$_LSRC" ]; do
-			_LSRC="$(readlink $_LSRC)";
+	if [ -L "${_SRC}" ]; then
+		_exec_echo "cp -fa ${_SRC} ${_DST}";
+		_LSRC="${_SRC}";
+		_DSRC="$(dirname ${_SRC})";
+		while [ -L "${_LSRC}" ]; do
+			_LSRC="$(readlink ${_LSRC})";
 			# check if not in fullpatch
-			if [ ! -e "$_LSRC" ] && [ -e "${_DSRC}/${_LSRC}" ]; then
+			if [ ! -e "${_LSRC}" ] && [ -e "${_DSRC}/${_LSRC}" ]; then
 				_LSRC="${_DSRC}/${_LSRC}";
 			fi
-			_exec_echo "cp -fa $_LSRC $_DST";
+			_exec_echo "cp -fa ${_LSRC} ${_DST}";
 			 # strip if not symlink
-			_BSRC="$(basename $_LSRC)";
-			if [ ! -L "$_DST/$_BSRC" ]; then
-				_exec_echo "strip --strip-debug --strip-unneeded $_DST/$_BSRC";
+			_BSRC="$(basename ${_LSRC})";
+			if [ ! -L "${_DST}/${_BSRC}" ]; then
+				_exec_echo "strip --strip-debug --strip-unneeded ${_DST}/${_BSRC}";
 			fi
 			unset _BSRC;
 		done
 	else
-		_exec_echo "cp -fa $_SRC $_DST";
-		_exec_echo "strip --strip-debug --strip-unneeded $_DST/$_BSRC";		
+		_exec_echo "cp -fa ${_SRC} ${_DST}";
+		_exec_echo "strip --strip-debug --strip-unneeded ${_DST}/${_BSRC}";		
 	fi
 }
 
