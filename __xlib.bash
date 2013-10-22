@@ -404,4 +404,11 @@ __pgrepf() {
         return 1;
 }
 
+# _trim() -- Strip whitespace from the beginning and end of a string
+_trim() {
+    local str="$@";
+    str="${str#"${str%%[![:space:]]*}"}";
+    str="${str%"${str##*[![:space:]]}"}";
+    echo -n "${str}";
+}
 
