@@ -2,7 +2,7 @@
 #
 # __xlib.bash - Extra function for Bash Scripting language
 #
-# Copyright (C) 200?-2011 Mohd Nawawi Mohamad Jamili <nawawi@rutweb.com>
+# Copyright (C) 200?-2013 Mohd Nawawi Mohamad Jamili <nawawi@rutweb.com>
 #
 # This file is distributed under the terms of the GNU General Public
 # License (GPL). Copies of the GPL can be obtained from:
@@ -404,11 +404,34 @@ __pgrepf() {
         return 1;
 }
 
-# _trim() -- Strip whitespace from the beginning and end of a string
-_trim() {
+# trim() -- Strip whitespace from the beginning and end of a string
+trim() {
     local str="$@";
     str="${str#"${str%%[![:space:]]*}"}";
     str="${str%"${str##*[![:space:]]}"}";
     echo -n "${str}";
+}
+
+# cat() -- Cat implement in pure bash
+# can handle EOF, but NULL will break it.
+# original from http://eatnumber1.blogspot.com/2009/05/pure-bash-cat.html
+cat() {
+    local INPUTS=( "${@:-"-"}" )
+    for i in "${INPUTS[@]}"; do
+        # quick hack to get /proc/*/cmdline content that end by null character
+        if [[ "$i" =~ ^(/proc/[0-9]+/.*) ]] && [ -f $i ]; then
+            echo $(< $i );
+            break;
+        fi
+        if [[ "$i" != "-" ]]; then
+            exec 3< "$i" || exit 1;
+        else
+            exec 3<&0
+        fi
+        while read -ru 3; do
+            echo -E "$REPLY";
+        done
+    done
+    exit 0;
 }
 
