@@ -419,17 +419,17 @@ cat() {
     local INPUTS=( "${@:-"-"}" )
     for i in "${INPUTS[@]}"; do
         # quick hack to get /proc/*/cmdline content that end by null character
-        if [[ "$i" =~ ^(/proc/[0-9]+/.*) ]] && [ -f $i ]; then
+        if [[ "${i}" =~ ^(/proc/[0-9]+/.*) ]] && [ -f "${i}" ]; then
             echo $(< $i );
             break;
         fi
-        if [[ "$i" != "-" ]]; then
-            exec 3< "$i" || exit 1;
+        if [[ "${i}" != "-" ]]; then
+            exec 3< "${i}" || exit 1;
         else
             exec 3<&0
         fi
         while read -ru 3; do
-            echo -E "$REPLY";
+            echo -E "${REPLY}";
         done
     done
     exit 0;
