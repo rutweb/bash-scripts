@@ -412,7 +412,7 @@ trim() {
     echo -n "${str}";
 }
 
-# cat() -- Cat implement in pure bash
+# cat() -- cat implement in pure bash
 # can handle EOF, but NULL will break it.
 # original from http://eatnumber1.blogspot.com/2009/05/pure-bash-cat.html
 cat() {
