@@ -424,7 +424,7 @@ cat() {
             break;
         fi
         if [[ "${i}" != "-" ]]; then
-            exec 3< "${i}" || exit 1;
+            exec 3< "${i}" || return 1;
         else
             exec 3<&0
         fi
@@ -432,6 +432,6 @@ cat() {
             echo -E "${REPLY}";
         done
     done
-    exit 0;
+    return 0;
 }
 
