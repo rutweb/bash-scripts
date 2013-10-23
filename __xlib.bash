@@ -392,7 +392,7 @@ __pgrepf() {
                 ! [[ $_pid =~ ^([0-9]+)$ ]] && continue;
                 (( $_pid <= 9 )) && continue;
                 [ "$_pid" = "$_me" ] && continue;
-                _buf=$(< $_f);
+                [ -e $_f ] && _buf=$(< $_f);
                 [ -z "$_buf" ] && continue;
                 [[ $_buf = *$_mt* ]] && _pidr+="$_pid ";
                 unset _pid _buf;
